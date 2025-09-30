@@ -19,32 +19,25 @@ mongoose.connect(MONGODB_URI, {
 .then(() => console.log('Conectado a MongoDB - Base de datos'))
 .catch(e => console.error('Error conexión MongoDB:', e));
 
-// --- RUTA PARA CREAR PERSONA (CORREGIDA) ---
-// --- RUTA PARA CREAR PERSONA (CORREGIDA) ---
+// Crear
 app.post('/', async (req, res) => {
     try {
         const persona = new Persona(req.body);
         await persona.save();
         res.status(201).json(persona);
     } catch (error) {
-        // Error de DNI duplicado
         if (error.code === 11000) {
             return res.status(400).json({ message: 'El DNI ingresado ya se encuentra registrado.' });
         }
-        
-        // --- ESTE ES EL CAMBIO CLAVE ---
-        // Si es un error de validación, ahora enviamos el objeto de errores completo.
         if (error.name === 'ValidationError') {
             return res.status(400).json({ errors: error.errors });
         }
-        
-        // Para cualquier otro tipo de error
         res.status(500).json({ message: 'Error interno del servidor.' });
     }
 });
 
 
-// Obtener todas las personas (sin cambios)
+// Obtener todas las personas
 app.get('/', async (req, res) => {
     try {
         const personas = await Persona.find();
@@ -54,7 +47,7 @@ app.get('/', async (req, res) => {
     }
 });
 
-// Obtener persona por ID (sin cambios)
+// Obtener persona por ID 
 app.get('/:id', async (req, res) => {
     try {
         const persona = await Persona.findById(req.params.id);
@@ -65,24 +58,20 @@ app.get('/:id', async (req, res) => {
     }
 });
 
-// --- RUTA PARA ACTUALIZAR PERSONA (CORREGIDA) ---
+// actualizar
 app.put('/:id', async (req, res) => {
     try {
         const persona = await Persona.findByIdAndUpdate(
             req.params.id, 
             req.body, 
-            { new: true, runValidators: true } // runValidators es clave aquí
+            { new: true, runValidators: true } 
         );
         if (!persona) return res.status(404).json({ message: 'No encontrado' });
         res.json(persona);
     } catch (error) {
-        // --- CAMBIO IMPORTANTE AQUÍ ---
-        // Manejo de error de validación
         if (error.name === 'ValidationError') {
             return res.status(400).json({ errors: error.errors });
         }
-
-        // Manejo de error de DNI duplicado al actualizar
         if (error.code === 11000) {
             return res.status(400).json({ message: 'El DNI ingresado ya pertenece a otra persona.' });
         }
@@ -91,7 +80,7 @@ app.put('/:id', async (req, res) => {
     }
 });
 
-// Eliminar persona por ID (sin cambios)
+// Eliminar persona por ID
 app.delete('/:id', async (req, res) => {
     try {
         const persona = await Persona.findByIdAndDelete(req.params.id);
